@@ -1,0 +1,19 @@
+[project]
+name = "Spine-Asset"
+version = "0.1.0"
+description = "Spine Animation Asset Parser Library"
+authors = [
+    {name = "Harry Huang", email = "harryhuang2652@qq.com"}
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.9,<4"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"

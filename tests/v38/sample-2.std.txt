@@ -1,0 +1,11 @@
+Name: None
+Bones: ['root', 'Bone', 'Front', 'Body', 'BigWheel_Location', 'Shoulder', 'Absorber_RA', 'RightWheel', 'Absorber_L', 'LeftWheel', 'Bumper_R', 'Bumper_L', 'Bed_A', 'RightWheel_A', 'RightWheel_A_rotation', 'BigWheel_A', 'BigWheel_A_rotation', 'BigWheel_B', 'BigWheel_B_rotation', 'IK_Bumper_R', 'IK_Bumper_L', 'Body_B', 'BigWheel_E', 'RightWheel_C', 'LeftWheel_B', 'RightWheel_C2', 'LeftWheel_B2', 'BigWheel_E2', 'RightWheel_C3', 'LeftWheel_B3', 'BigWheel_E3', 'Absorber_La', 'BigWheel_E4', 'Plugin_Head', 'Plugin_Head_Drill_I', 'Plugin_Head_Drill_II', 'Plugin_Top', 'Plugin_Pack_I', 'Plugin_Pack_II', 'Plugin_Drill_Ia', 'Plugin_Drill_IIa', 'Plugin_Drill_Ia2', 'Plugin_Drill_Ia3', 'Plugin_Drill_IIa2', 'Plugin_Drill_IIa3']
+Slots: ['BigWheel_D', 'BigWheel_C', 'BigWheel_B', 'BigWheelClip', 'BigWheel_E4', 'BigWheel_E3', 'BigWheel_E2', 'BigWheel_E', 'BigWheel', 'BigWheel_Location', 'LeftWheel_A', 'LeftWheelClip', 'LeftWheel_B3', 'LeftWheel_B2', 'LeftWheel_B', 'Absorber_L', 'Bumper_L', 'Bed_C', 'Bed_B', 'Plugin_Pack_II', 'Plugin_Pack_I', 'Bed_A', 'Body', 'Plugin_Top', 'Plugin_Head', 'Plugin_Drill_II', 'Plugin_Drill_IIa_Clip', 'Plugin_Drill_IIa', 'Plugin_Drill_IIa2', 'Plugin_Drill_IIa3', 'Plugin_Drill_I', 'Plugin_Drill_Ia_Clip', 'Plugin_Drill_Ia', 'Plugin_Drill_Ia2', 'Plugin_Drill_Ia3', 'Plugin_Spring_B', 'Plugin_Spring_A', 'Body_A', 'Absorber_RB', 'Absorber_RA', 'Bumper_R', 'RightWheel', 'RightWheelClip', 'RightWheel_C3', 'RightWheel_C2', 'RightWheel_C', 'RightWheel_A', 'Shoulder']
+Skins: ['default', 'Top/G_AC', 'Head/G_Drill', 'Pack_I/G_Energy', 'Pack_II/G_Energy', 'Pack_I/G_Hormone', 'Pack_II/G_Hormone', 'Pack_I/G_Medical', 'Pack_II/G_Medical', 'Head/G_Prick', 'Top/G_Radiation', 'Head/G_Spring', 'Top/G_Trumpet', 'Color/Green', 'Top/O_AC', 'Head/O_Drill', 'Pack_I/O_Energy', 'Pack_II/O_Energy', 'Pack_I/O_Hormone', 'Pack_II/O_Hormone', 'Pack_I/O_Medical', 'Pack_II/O_Medical', 'Head/O_Prick', 'Top/O_Radiation', 'Head/O_Spring', 'Top/O_Trumpet', 'Color/Orange', 'Pack_I/P_Energy', 'Pack_II/P_Energy', 'Head/P_Spring', 'Color/Purple', 'Color/White']
+Events: []
+Animations: ['Default', 'Die', 'Idle', 'Move']
+IK Constraints: 4
+Transform Constraints: 1
+Path Constraints: 0
+Version: 3.8.84
+Hash: 5IUPMK4Dqm4ddTK0LVOJWaUAIsY

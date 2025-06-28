@@ -1,8 +1,11 @@
+from typing import Union
+
 import os
 import glob
 import traceback
 from spine_asset.v38.SkeletonBinary import SkeletonBinary
 from spine_asset.v38.SkeletonData import SkeletonData
+from spine_asset.v38.SkeletonJson import SkeletonJson
 
 
 def summary(skeleton_data: SkeletonData):
@@ -28,13 +31,13 @@ def summary(skeleton_data: SkeletonData):
     )
 
 
-def test_single(file_path: str, skeleton_binary: SkeletonBinary):
+def test_single(file_path: str, skeleton_instance: Union[SkeletonBinary, SkeletonJson]):
     """Test a single skeleton file."""
     std_file_path = os.path.splitext(file_path)[0] + ".std.txt"
     out_file_path = os.path.splitext(file_path)[0] + ".out.txt"
 
     with open(file_path, "rb") as f:
-        skeleton_data = skeleton_binary.read_skeleton_data(f.read())
+        skeleton_data = skeleton_instance.read_skeleton_data(f.read())
 
     out_content = summary(skeleton_data)
 
@@ -59,25 +62,28 @@ def test_batch(folder_path: str):
         raise FileNotFoundError(f"Folder '{folder_path}' does not exist or is not a directory")
 
     skel_files = glob.glob(os.path.join(folder_path, "*.skel"))
+    json_files = glob.glob(os.path.join(folder_path, "*.json"))
+    total_count = len(skel_files) + len(json_files)
 
     if not skel_files:
-        raise FileNotFoundError(f"No .skel files found in '{folder_path}'")
+        raise FileNotFoundError(f"No available file found in '{folder_path}'")
 
     skeleton_binary = SkeletonBinary(scale=1.0)
+    skeleton_json = SkeletonJson(scale=1.0)
     failed = False
 
     print("=" * 60)
 
-    for i, skel_file in enumerate(skel_files, 1):
-        print(f"[{i}/{len(skel_files)}] {os.path.relpath(skel_file, folder_path)}")
+    for i, file_name in enumerate(skel_files + json_files, 1):
+        print(f"[{i}/{total_count}] {os.path.relpath(file_name, folder_path)}")
         try:
-            test_single(skel_file, skeleton_binary)
+            test_single(file_name, skeleton_binary if file_name.endswith(".skel") else skeleton_json)
         except AssertionError as e:
-            print(f"  '{skel_file}': Assertion error. {e}")
+            print(f"  '{file_name}': Assertion error. {e}")
             failed = True
             break
         except Exception as e:
-            print(f"  '{skel_file}': Unexpected error.")
+            print(f"  '{file_name}': Unexpected error.")
             print("\n" + traceback.format_exc() + "\n")
             failed = True
             break
@@ -88,5 +94,5 @@ def test_batch(folder_path: str):
         print("❌ Oops! Some files failed the test. Please check the messages above.")
         return False
     else:
-        print(f"✅ Well done! {len(skel_files)} files tested.")
+        print(f"✅ Well done! {total_count} files tested.")
         return True

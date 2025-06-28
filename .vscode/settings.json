@@ -1,0 +1,12 @@
+{
+    "black-formatter.args": [ "-l", "120" ],
+    "cSpell.words": [
+        "BOUNDINGBOX",
+        "draworder",
+        "LINKEDMESH",
+        "skel",
+        "varint"
+    ],
+    "editor.formatOnSave": true,
+    "python.analysis.typeCheckingMode": "basic"
+}

@@ -95,13 +95,13 @@ class SkeletonBinary:
             if not skeleton_data.audio_path:
                 skeleton_data.audio_path = None
 
-        # Read strings
+        # Strings pool
         self._strings = []
         string_count = self._reader.read_varint()
         for _ in range(string_count):
             self._strings.append(self._reader.read_string())
 
-        # Read bones
+        # Bones
         bone_count = self._reader.read_varint()
         for i in range(bone_count):
             name = self._reader.read_string()
@@ -121,7 +121,7 @@ class SkeletonBinary:
                 bone_data.color = self._reader.read_color()
             skeleton_data.bones.append(bone_data)
 
-        # Read slots
+        # Slots
         slot_count = self._reader.read_varint()
         for i in range(slot_count):
             slot_name = self._reader.read_string()
@@ -141,7 +141,7 @@ class SkeletonBinary:
             slot_data.blend_mode = self._get_blend_mode(self._reader.read_varint())
             skeleton_data.slots.append(slot_data)
 
-        # Read IK constraints
+        # IK constraints
         ik_count = self._reader.read_varint()
         for i in range(ik_count):
             ik_data = IkConstraintData(self._reader.read_string())
@@ -161,7 +161,7 @@ class SkeletonBinary:
             ik_data.uniform = self._reader.read_boolean()
             skeleton_data.ik_constraints.append(ik_data)
 
-        # Read transform constraints
+        # Transform constraints
         transform_count = self._reader.read_varint()
         for i in range(transform_count):
             transform_data = TransformConstraintData(self._reader.read_string())
@@ -187,7 +187,7 @@ class SkeletonBinary:
             transform_data.shear_mix = self._reader.read_float32()
             skeleton_data.transform_constraints.append(transform_data)
 
-        # Read path constraints
+        # Path constraints
         path_count = self._reader.read_varint()
         for i in range(path_count):
             path_data = PathConstraintData(self._reader.read_string())
@@ -218,20 +218,20 @@ class SkeletonBinary:
             path_data.translate_mix = self._reader.read_float32()
             skeleton_data.path_constraints.append(path_data)
 
-        # Read default skin
+        # Default skin
         default_skin = self._read_skin(True, nonessential, skeleton_data)
         if default_skin:
             skeleton_data.default_skin = default_skin
             skeleton_data.skins.append(default_skin)
 
-        # Read skins
+        # Skins
         skin_count = self._reader.read_varint()
         for _ in range(skin_count):
             skin = self._read_skin(False, nonessential, skeleton_data)
             if skin:
                 skeleton_data.skins.append(skin)
 
-        # Read events
+        # Events
         event_count = self._reader.read_varint()
         for _ in range(event_count):
             event_name = self._read_string_ref()
@@ -245,14 +245,14 @@ class SkeletonBinary:
                 event_data.balance = self._reader.read_float32()
             skeleton_data.events.append(event_data)
 
-        # Read animations
+        # Animations
         animation_count = self._reader.read_varint()
         for _ in range(animation_count):
             animation_name = self._reader.read_string()
             animation = self._read_animation(animation_name, skeleton_data)
             skeleton_data.animations.append(animation)
 
-        # Resolve linked meshes
+        # Linked meshes
         for linked_mesh in self.linked_meshes:
             skin = skeleton_data.default_skin if linked_mesh.skin is None else skeleton_data.find_skin(linked_mesh.skin)
             if skin is None:
@@ -284,39 +284,27 @@ class SkeletonBinary:
             if slot_count == 0:
                 return None
             skin = Skin("default")
+
         else:
             skin_name = self._read_string_ref()
             if skin_name is None:
                 return None
             skin = Skin(skin_name)
 
-            # Read bones
-            bone_count = self._reader.read_varint()
-            for _ in range(bone_count):
-                bone_index = self._reader.read_varint()
-                skin.bones.append(skeleton_data.bones[bone_index])
+            for _ in range(self._reader.read_varint()):
+                skin.bones.append(skeleton_data.bones[self._reader.read_varint()])
 
-            # Read IK constraints
-            ik_count = self._reader.read_varint()
-            for _ in range(ik_count):
-                ik_index = self._reader.read_varint()
-                skin.constraints.append(skeleton_data.ik_constraints[ik_index])
+            for _ in range(self._reader.read_varint()):
+                skin.constraints.append(skeleton_data.ik_constraints[self._reader.read_varint()])
 
-            # Read transform constraints
-            transform_count = self._reader.read_varint()
-            for _ in range(transform_count):
-                transform_index = self._reader.read_varint()
-                skin.constraints.append(skeleton_data.transform_constraints[transform_index])
+            for _ in range(self._reader.read_varint()):
+                skin.constraints.append(skeleton_data.transform_constraints[self._reader.read_varint()])
 
-            # Read path constraints
-            path_count = self._reader.read_varint()
-            for _ in range(path_count):
-                path_index = self._reader.read_varint()
-                skin.constraints.append(skeleton_data.path_constraints[path_index])
+            for _ in range(self._reader.read_varint()):
+                skin.constraints.append(skeleton_data.path_constraints[self._reader.read_varint()])
 
             slot_count = self._reader.read_varint()
 
-        # Read slot attachments
         for _ in range(slot_count):
             slot_index = self._reader.read_varint()
             attachment_count = self._reader.read_varint()
@@ -324,7 +312,7 @@ class SkeletonBinary:
             for _ in range(attachment_count):
                 attachment_name = self._read_string_ref()
                 if attachment_name:
-                    attachment = self._read_attachment(skin, slot_index, attachment_name, nonessential, skeleton_data)
+                    attachment = self._read_attachment(slot_index, attachment_name, nonessential, skeleton_data)
                     if attachment:
                         skin.set_attachment(slot_index, attachment_name, attachment)
 
@@ -332,16 +320,11 @@ class SkeletonBinary:
 
     def _read_attachment(
         self,
-        skin: Skin,
         slot_index: int,
-        attachment_name: Optional[str],
+        attachment_name: str,
         nonessential: bool,
         skeleton_data: SkeletonData,
     ) -> Optional[Attachment]:
-        """Read attachment data."""
-        if attachment_name is None:
-            return None
-
         # First read the name (might be different from attachment_name)
         name = self._read_string_ref()
         if name is None:
@@ -349,7 +332,7 @@ class SkeletonBinary:
 
         attachment_type = self._get_attachment_type(self._reader.read_byte())
 
-        if attachment_type == BinaryAttachmentType.REGION:  # Region
+        if attachment_type == BinaryAttachmentType.REGION:
             path = self._read_string_ref()
             if path is None:
                 path = name
@@ -366,40 +349,40 @@ class SkeletonBinary:
             attachment.color = [color[0], color[1], color[2], color[3]]
             attachment.update_offset()
 
-        elif attachment_type == BinaryAttachmentType.MESH:  # Mesh
+        elif attachment_type == BinaryAttachmentType.MESH:
             path = self._read_string_ref()
             if path is None:
                 path = name
             attachment = MeshAttachment(name)
             attachment.set_path(path)
 
-            # Read color
+            # Color
             color = self._reader.read_color()
             attachment.color = [color[0], color[1], color[2], color[3]]
 
-            # Read vertex count and UVs
+            # Vertex count and UVs
             vertex_count = self._reader.read_varint()
             uvs = []
             for _ in range(vertex_count * 2):
                 uvs.append(self._reader.read_float32())
             attachment.set_region_uvs(uvs)
 
-            # Read triangles
+            # Triangles
             triangle_count = self._reader.read_varint()
             triangles = []
             for _ in range(triangle_count):
                 triangles.append(self._reader.read_int16())
             attachment.set_triangles(triangles)
 
-            # Read vertices
+            # Vertices
             vertices, bones = self._read_vertices(vertex_count)
             attachment.vertices = vertices
             if bones is not None:
                 attachment.bones = bones
-            attachment.set_hull_length(self._reader.read_varint() * 2)  # hullLength << 1
+            attachment.set_hull_length(self._reader.read_varint() * 2)  # hull_length << 1
 
             if nonessential:
-                # Read edges
+                # Edges
                 edge_count = self._reader.read_varint()
                 edges = []
                 for _ in range(edge_count):
@@ -410,14 +393,12 @@ class SkeletonBinary:
 
             attachment.update_uvs()
 
-        elif attachment_type == BinaryAttachmentType.LINKEDMESH:  # LinkedMesh
+        elif attachment_type == BinaryAttachmentType.LINKEDMESH:
             path = self._read_string_ref()
             if path is None:
                 path = name
 
-            # Read color
             color = self._reader.read_color()
-
             skin_name = self._read_string_ref()
             parent_name = self._read_string_ref()
             inherit_deform = self._reader.read_boolean()
@@ -441,13 +422,12 @@ class SkeletonBinary:
                 linked_mesh = LinkedMesh(attachment, skin_name, slot_index, parent_name, inherit_deform)
                 self.linked_meshes.append(linked_mesh)
 
-        elif attachment_type == BinaryAttachmentType.PATH:  # Path
+        elif attachment_type == BinaryAttachmentType.PATH:
             closed = self._reader.read_boolean()
             constant_speed = self._reader.read_boolean()
             vertex_count = self._reader.read_varint()
             vertices, bones = self._read_vertices(vertex_count)
 
-            # Read lengths
             lengths = []
             for _ in range(vertex_count // 3):
                 lengths.append(self._reader.read_float32() * self.scale)
@@ -464,7 +444,7 @@ class SkeletonBinary:
                 color = self._reader.read_color()
                 attachment.color = [color[0], color[1], color[2], color[3]]
 
-        elif attachment_type == BinaryAttachmentType.BOUNDINGBOX:  # BoundingBox
+        elif attachment_type == BinaryAttachmentType.BOUNDINGBOX:
             vertex_count = self._reader.read_varint()
             vertices, bones = self._read_vertices(vertex_count)
 
@@ -477,7 +457,7 @@ class SkeletonBinary:
                 color = self._reader.read_color()
                 attachment.color = [color[0], color[1], color[2], color[3]]
 
-        elif attachment_type == BinaryAttachmentType.POINT:  # Point
+        elif attachment_type == BinaryAttachmentType.POINT:
             rotation = self._reader.read_float32()
             x = self._reader.read_float32()
             y = self._reader.read_float32()
@@ -491,13 +471,12 @@ class SkeletonBinary:
                 color = self._reader.read_color()
                 attachment.color = [color[0], color[1], color[2], color[3]]
 
-        elif attachment_type == BinaryAttachmentType.CLIPPING:  # Clipping
+        elif attachment_type == BinaryAttachmentType.CLIPPING:
             end_slot_index = self._reader.read_varint()
             vertex_count = self._reader.read_varint()
             vertices, bones = self._read_vertices(vertex_count)
 
             attachment = ClippingAttachment(name)
-            # Set end slot from skeleton data
             if end_slot_index < len(skeleton_data.slots):
                 attachment.end_slot = skeleton_data.slots[end_slot_index]
             attachment.vertices = vertices
@@ -524,7 +503,7 @@ class SkeletonBinary:
                 vertices.append(self._reader.read_float32() * self.scale)
             return vertices, None
         else:
-            # Weighted vertices - store as flat arrays like Java
+            # Weighted vertices, flat arrays
             weights = []
             bones_array = []
 

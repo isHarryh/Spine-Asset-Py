@@ -1,6 +1,7 @@
 from . import attachments
 from . import timelines
 from .Animation import Animation
+from .AtlasFile import AtlasFile, AtlasPage, AtlasRegion
 from .BoneData import BoneData
 from .ConstraintData import ConstraintData
 from .Enums import (
@@ -34,6 +35,9 @@ __all__ = [
     "attachments",
     "timelines",
     "Animation",
+    "AtlasFile",
+    "AtlasPage",
+    "AtlasRegion",
     "AttachmentType",
     "BinaryAttachmentType",
     "BinaryTimelineType",

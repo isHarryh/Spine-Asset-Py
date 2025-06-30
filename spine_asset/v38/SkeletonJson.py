@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 import json
 
@@ -55,15 +55,9 @@ class SkeletonJson:
         self.scale = scale
         self.linked_meshes: List[LinkedMesh] = []
 
-    def read_skeleton_data(self, source: Any) -> SkeletonData:
-        """Read skeleton data from JSON string or file path."""
-        if isinstance(source, (bytes, str)):
-            data = json.loads(source if isinstance(source, str) else source.decode())
-        else:
-            with open(source, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-        reader = SkeletonJsonReader(data)
+    def read_skeleton_data(self, content: Union[bytes, str]) -> SkeletonData:
+        """Read skeleton data from JSON string or bytes."""
+        reader = SkeletonJsonReader(json.loads(content))
 
         scale = self.scale
         skeleton_data = SkeletonData()

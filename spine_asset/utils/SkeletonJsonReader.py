@@ -15,8 +15,7 @@ class SkeletonJsonReader:
         if isinstance(data, dict):
             self._json = data
         elif isinstance(data, (str, bytes)):
-            json_str = data if isinstance(data, str) else data.decode("utf-8")
-            self._json = json.loads(json_str)
+            self._json = json.loads(data)
         else:
             raise ValueError("Data must be string, bytes, or dict")
 

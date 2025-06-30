@@ -1,8 +1,7 @@
-from typing import Union
-
 import os
 import glob
 import traceback
+from spine_asset.v38.AtlasFile import AtlasFile
 from spine_asset.v38.SkeletonBinary import SkeletonBinary
 from spine_asset.v38.SkeletonData import SkeletonData
 from spine_asset.v38.SkeletonJson import SkeletonJson
@@ -31,15 +30,19 @@ def summary(skeleton_data: SkeletonData):
     )
 
 
-def test_single(file_path: str, skeleton_instance: Union[SkeletonBinary, SkeletonJson]):
+def test_single_skeleton(file_path: str):
     """Test a single skeleton file."""
     std_file_path = os.path.splitext(file_path)[0] + ".std.txt"
     out_file_path = os.path.splitext(file_path)[0] + ".out.txt"
 
-    with open(file_path, "rb") as f:
-        skeleton_data = skeleton_instance.read_skeleton_data(f.read())
+    if file_path.endswith(".json"):
+        with open(file_path, "r", encoding="utf-8") as f:
+            skeleton = SkeletonJson().read_skeleton_data(f.read())
+    else:
+        with open(file_path, "rb") as f:
+            skeleton = SkeletonBinary().read_skeleton_data(f.read())
 
-    out_content = summary(skeleton_data)
+    out_content = summary(skeleton)
 
     with open(out_file_path, "w", encoding="utf-8") as f:
         f.write(out_content)
@@ -54,30 +57,51 @@ def test_single(file_path: str, skeleton_instance: Union[SkeletonBinary, Skeleto
         print("  No standard file found")
 
 
+def test_single_atlas(file_path: str):
+    """Test a single atlas file."""
+    out_file_path = os.path.splitext(file_path)[0] + ".out.atlas"
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        atlas_content = f.read()
+        atlas = AtlasFile.loads(atlas_content)
+
+    out_content = atlas.dumps()
+
+    with open(out_file_path, "w", encoding="utf-8") as f:
+        f.write(out_content)
+
+    if out_content == atlas_content:
+        print("  Deserialization matches source file")
+    else:
+        raise AssertionError("Deserialization does not match source file")
+
+
 def test_batch(folder_path: str):
-    """Batch test all .skel files in folder."""
-    print(f"🚀 Spine skeleton test, target folder: {folder_path}")
+    """Batch test all files in folder."""
+    print(f"🚀 Spine parsing test, target folder: {folder_path}")
 
     if not os.path.isdir(folder_path):
         raise FileNotFoundError(f"Folder '{folder_path}' does not exist or is not a directory")
 
     skel_files = glob.glob(os.path.join(folder_path, "*.skel"))
     json_files = glob.glob(os.path.join(folder_path, "*.json"))
-    total_count = len(skel_files) + len(json_files)
+    atlas_files = glob.glob(os.path.join(folder_path, "*.atlas"))
+    all_files = list(filter(lambda x: not ".out." in x, skel_files + json_files + atlas_files))
 
     if not skel_files:
         raise FileNotFoundError(f"No available file found in '{folder_path}'")
 
-    skeleton_binary = SkeletonBinary(scale=1.0)
-    skeleton_json = SkeletonJson(scale=1.0)
     failed = False
 
     print("=" * 60)
 
-    for i, file_name in enumerate(skel_files + json_files, 1):
-        print(f"[{i}/{total_count}] {os.path.relpath(file_name, folder_path)}")
+    for i, file_name in enumerate(all_files, 1):
+        print(f"[{i}/{len(all_files)}] {os.path.relpath(file_name, folder_path)}")
         try:
-            test_single(file_name, skeleton_binary if file_name.endswith(".skel") else skeleton_json)
+            if file_name.endswith(".atlas"):
+                test_single_atlas(file_name)
+            else:
+                test_single_skeleton(file_name)
         except AssertionError as e:
             print(f"  '{file_name}': Assertion error. {e}")
             failed = True
@@ -94,5 +118,5 @@ def test_batch(folder_path: str):
         print("❌ Oops! Some files failed the test. Please check the messages above.")
         return False
     else:
-        print(f"✅ Well done! {total_count} files tested.")
+        print(f"✅ Well done! {len(all_files)} files tested.")
         return True

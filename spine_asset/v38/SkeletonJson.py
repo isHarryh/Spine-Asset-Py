@@ -1,7 +1,8 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 import json
 
+from .AtlasFile import AtlasFile
 from .SkeletonData import SkeletonData
 from .BoneData import BoneData
 from .SlotData import SlotData
@@ -47,9 +48,10 @@ from ..utils.SkeletonJsonReader import SkeletonJsonReader
 class SkeletonJson:
     """Loads skeleton data in the Spine JSON format."""
 
-    def __init__(self, scale: float = 1.0):
+    def __init__(self, atlas: Optional[AtlasFile] = None, scale: float = 1.0):
         if scale == 0:
-            raise ValueError("scale cannot be 0.")
+            raise ValueError("scale cannot be 0")
+        self.atlas = atlas
         self.scale = scale
         self.linked_meshes: List[LinkedMesh] = []
 

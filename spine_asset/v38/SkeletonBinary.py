@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from .AtlasFile import AtlasFile
 from .SkeletonData import SkeletonData
 from .BoneData import BoneData
 from .SlotData import SlotData
@@ -55,9 +56,10 @@ from ..utils import SkeletonBinaryReader
 class SkeletonBinary:
     """Handler for Spine binary format skeleton."""
 
-    def __init__(self, scale: float = 1.0):
+    def __init__(self, atlas: Optional[AtlasFile] = None, scale: float = 1.0):
         if scale == 0:
-            raise ValueError("scale cannot be 0.")
+            raise ValueError("scale cannot be 0")
+        self.atlas = atlas
         self.scale = scale
         self.linked_meshes: List[LinkedMesh] = []
 

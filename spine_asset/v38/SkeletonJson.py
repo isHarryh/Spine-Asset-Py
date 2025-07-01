@@ -602,20 +602,42 @@ class SkeletonJson:
             else:
                 values = list(anim_map.iter_child_list("draworder"))
             timeline = DrawOrderTimeline(len(values))
+            slot_count = len(skeleton_data.slots)
+
             for i, value_map in enumerate(values):
                 draw_order = None
                 offsets = value_map.get_list("offsets")
                 if offsets:
-                    draw_order = list(range(len(skeleton_data.slots)))
-                    slots = skeleton_data.slots
+                    draw_order = [-1] * slot_count
+                    unchanged = [0] * (slot_count - len(offsets))
+                    original_index = 0
+                    unchanged_index = 0
 
-                    original_draw_order = list(range(len(slots)))
                     for offset in offsets:
                         slot = skeleton_data.find_slot(offset["slot"])
+                        if slot is None:
+                            raise RuntimeError(f"Slot not found: {offset['slot']}")
                         slot_index = slot.index
-                        original_draw_order.pop(original_draw_order.index(slot_index))
-                        original_draw_order.insert(slot_index + offset["offset"], slot_index)
-                    draw_order = original_draw_order
+                        # Collect unchanged items
+                        while original_index != slot_index:
+                            unchanged[unchanged_index] = original_index
+                            unchanged_index += 1
+                            original_index += 1
+                        # Set changed items
+                        draw_order[original_index + offset["offset"]] = original_index
+                        original_index += 1
+
+                    # Collect remaining unchanged items
+                    while original_index < slot_count:
+                        unchanged[unchanged_index] = original_index
+                        unchanged_index += 1
+                        original_index += 1
+
+                    # Fill in unchanged items
+                    for ii in range(slot_count - 1, -1, -1):
+                        if draw_order[ii] == -1:
+                            unchanged_index -= 1
+                            draw_order[ii] = unchanged[unchanged_index]
 
                 timeline.set_frame(i, value_map.get_float("time"), draw_order)
             timelines.append(timeline)

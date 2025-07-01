@@ -848,7 +848,7 @@ class SkeletonBinary:
                     # Set changed items
                     offset = self._reader.read_varint()
                     new_index = original_index + offset
-                    if 0 <= new_index < slot_count:  # Bounds check
+                    if 0 <= new_index < slot_count:  # ?
                         draw_order[new_index] = original_index
                     original_index += 1
 
@@ -861,8 +861,9 @@ class SkeletonBinary:
                 # Fill in unchanged items
                 for ii in range(slot_count - 1, -1, -1):
                     if draw_order[ii] == -1:
-                        unchanged_index -= 1
-                        draw_order[ii] = unchanged[unchanged_index]
+                        if unchanged_index > 0:  # ?
+                            unchanged_index -= 1
+                            draw_order[ii] = unchanged[unchanged_index]
 
                 timeline.set_frame(i, time, draw_order)
 
